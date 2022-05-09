@@ -33,7 +33,7 @@ public class FirstFragment extends Fragment {
         binding.buttonFirst.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.d("info","You clicked the button!!!");
+                Log.d("applogs","You clicked the button!!!");
             }
         });
     }
@@ -43,5 +43,4 @@ public class FirstFragment extends Fragment {
         super.onDestroyView();
         binding = null;
     }
-
 }

@@ -12,6 +12,7 @@ import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.util.Log;
 import android.view.View;
 
 import androidx.navigation.NavController;
@@ -34,6 +35,9 @@ public class MainActivity extends AppCompatActivity {
     private Sensor gyroscopeSensor;
     private SensorEventListener gyroscopeEventListener;
 
+    private Sensor accelerationSensor;
+    private SensorEventListener accelerationEventListener;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
         gyroscopeSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         if (gyroscopeSensor == null) {
             Toast.makeText(this, "This device has no Gyroscope!", Toast.LENGTH_SHORT).show();
+            Log.d("applogs", "This device has no gyroscope sensor");
             finish();
         }
 
@@ -67,6 +72,28 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onAccuracyChanged(Sensor sensor, int i) {
+            }
+        };
+
+        accelerationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        if (accelerationSensor == null) {
+            Toast.makeText(this, "This device has no accelerometer!", Toast.LENGTH_SHORT).show();
+            Log.d("applogs", "This device has no accelerometer sensor");
+            finish();
+        }
+
+        accelerationEventListener = new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent sensorEvent) {
+                if (sensorEvent.values[0] > 0.5f) {
+                    getWindow().getDecorView().setBackgroundColor(Color.BLUE);
+                } else if (sensorEvent.values[0] < -0.5f) {
+                    getWindow().getDecorView().setBackgroundColor(Color.YELLOW);
+                }
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int i) {
 
             }
         };
@@ -76,12 +103,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         sensorManager.registerListener(gyroscopeEventListener, gyroscopeSensor,SensorManager.SENSOR_DELAY_FASTEST);
+        sensorManager.registerListener(accelerationEventListener, accelerationSensor,SensorManager.SENSOR_DELAY_FASTEST);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         sensorManager.unregisterListener(gyroscopeEventListener);
+        sensorManager.unregisterListener(accelerationEventListener);
     }
 
     @Override
