@@ -18,12 +18,17 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private Boolean isRecording = false;
-    // Fill this in order to create the plot at the end
-    private Float[] plotNumbers = {};
+    private ArrayList<Float> plotNumbers = new ArrayList<Float>();
+
+    private Integer scale = 1;
+    private Float positionX  = 0F;
 
     private SensorManager sensorManager;
     private Sensor gyroscopeSensor;
@@ -53,10 +58,8 @@ public class MainActivity extends AppCompatActivity {
                 }
                 float[] values = sensorEvent.values;
                 Log.d("applogs-gyro", Arrays.toString(values));
-                if (values[2] > 0.5f) {
-                    getWindow().getDecorView().setBackgroundColor(Color.BLUE);
-                } else if (values[2] < -0.5f) {
-                    getWindow().getDecorView().setBackgroundColor(Color.YELLOW);
+                if (positionX > plotNumbers.size()) {
+                   plotNumbers.add(values[2]);
                 }
             }
 
@@ -80,10 +83,8 @@ public class MainActivity extends AppCompatActivity {
                 }
                 float[] values = sensorEvent.values;
                 Log.d("applogs-acce", Arrays.toString(values));
-                if (values[0] > 0.5f) {
-                    getWindow().getDecorView().setBackgroundColor(Color.BLUE);
-                } else if (values[0] < -0.5f) {
-                    getWindow().getDecorView().setBackgroundColor(Color.YELLOW);
+                if (values[0] > 0.5f || values[0] < -0.5f){
+                    positionX += values[0] * scale;
                 }
             }
 
@@ -96,8 +97,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        sensorManager.registerListener(gyroscopeEventListener, gyroscopeSensor,SensorManager.SENSOR_DELAY_UI);
-        sensorManager.registerListener(accelerationEventListener, accelerationSensor,SensorManager.SENSOR_DELAY_UI);
+        sensorManager.registerListener(gyroscopeEventListener, gyroscopeSensor,SensorManager.SENSOR_DELAY_FASTEST);
+        sensorManager.registerListener(accelerationEventListener, accelerationSensor,SensorManager.SENSOR_DELAY_FASTEST);
     }
 
     @Override
@@ -114,18 +115,29 @@ public class MainActivity extends AppCompatActivity {
             Log.d("applogs", "Recording stopped!");
             Toast.makeText(this, "Recording stopped!", Toast.LENGTH_SHORT).show();
             GraphView graph = (GraphView) findViewById(R.id.graph);
-            LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(new DataPoint[] {
-                    new DataPoint(0, 1),
-                    new DataPoint(1, 5),
-                    new DataPoint(2, 3),
-                    new DataPoint(3, 2),
-                    new DataPoint(4, 6)
-            });
+
+            Log.d("applogs", plotNumbers.toString());
+            Log.d("applogs:positionX",positionX.toString());
+
+            DataPoint[] dataPoints = new DataPoint[plotNumbers.size()];
+
+            for (int i=0;i< plotNumbers.size();i++) {
+                dataPoints[i] = new DataPoint(i, plotNumbers.get(i));
+            }
+
+            Log.d("applogs", String.valueOf(dataPoints.length));
+
+            LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(dataPoints);
+            series.setDrawDataPoints(true);
+            graph.getViewport().setXAxisBoundsManual(false);
             graph.addSeries(series);
         } else {
             isRecording = true;
             Log.d("applogs", "Recording started!");
             Toast.makeText(this, "Recording started!", Toast.LENGTH_SHORT).show();
         }
+        Log.d("applogs", "Truncating!");
+        plotNumbers.clear();
+        positionX = 0.0F;
     }
 }
