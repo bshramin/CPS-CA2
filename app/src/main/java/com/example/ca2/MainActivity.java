@@ -14,10 +14,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
+
 import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
     private Boolean isRecording = false;
+    // Fill this in order to create the plot at the end
+    private Float[] plotNumbers = {};
 
     private SensorManager sensorManager;
     private Sensor gyroscopeSensor;
@@ -106,9 +112,20 @@ public class MainActivity extends AppCompatActivity {
         if (isRecording) {
             isRecording = false;
             Log.d("applogs", "Recording stopped!");
+            Toast.makeText(this, "Recording stopped!", Toast.LENGTH_SHORT).show();
+            GraphView graph = (GraphView) findViewById(R.id.graph);
+            LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(new DataPoint[] {
+                    new DataPoint(0, 1),
+                    new DataPoint(1, 5),
+                    new DataPoint(2, 3),
+                    new DataPoint(3, 2),
+                    new DataPoint(4, 6)
+            });
+            graph.addSeries(series);
         } else {
             isRecording = true;
             Log.d("applogs", "Recording started!");
+            Toast.makeText(this, "Recording started!", Toast.LENGTH_SHORT).show();
         }
     }
 }
