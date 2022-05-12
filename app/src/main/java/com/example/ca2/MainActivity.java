@@ -27,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private Boolean isRecording = false;
     private ArrayList<Float> plotNumbers = new ArrayList<Float>();
 
-    private Integer scale = 1;
+    private Float scale = 10F;
     private Float positionX  = 0F;
 
     private SensorManager sensorManager;
