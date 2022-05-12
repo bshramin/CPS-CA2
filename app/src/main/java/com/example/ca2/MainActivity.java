@@ -11,11 +11,13 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
+    private Boolean isRecording = false;
 
     private SensorManager sensorManager;
     private Sensor gyroscopeSensor;
@@ -29,7 +31,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         gyroscopeSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         if (gyroscopeSensor == null) {
@@ -41,8 +42,11 @@ public class MainActivity extends AppCompatActivity {
         gyroscopeEventListener = new SensorEventListener() {
             @Override
             public void onSensorChanged(SensorEvent sensorEvent) {
+                if (!isRecording) {
+                    return;
+                }
                 float[] values = sensorEvent.values;
-                Log.d("applog-gyro", Arrays.toString(values));
+                Log.d("applogs-gyro", Arrays.toString(values));
                 if (values[2] > 0.5f) {
                     getWindow().getDecorView().setBackgroundColor(Color.BLUE);
                 } else if (values[2] < -0.5f) {
@@ -65,8 +69,11 @@ public class MainActivity extends AppCompatActivity {
         accelerationEventListener = new SensorEventListener() {
             @Override
             public void onSensorChanged(SensorEvent sensorEvent) {
+                if (!isRecording) {
+                    return;
+                }
                 float[] values = sensorEvent.values;
-                Log.d("applog-acce", Arrays.toString(values));
+                Log.d("applogs-acce", Arrays.toString(values));
                 if (values[0] > 0.5f) {
                     getWindow().getDecorView().setBackgroundColor(Color.BLUE);
                 } else if (values[0] < -0.5f) {
@@ -83,8 +90,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        sensorManager.registerListener(gyroscopeEventListener, gyroscopeSensor,SensorManager.SENSOR_DELAY_NORMAL);
-        sensorManager.registerListener(accelerationEventListener, accelerationSensor,SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(gyroscopeEventListener, gyroscopeSensor,SensorManager.SENSOR_DELAY_UI);
+        sensorManager.registerListener(accelerationEventListener, accelerationSensor,SensorManager.SENSOR_DELAY_UI);
     }
 
     @Override
@@ -92,5 +99,16 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
         sensorManager.unregisterListener(gyroscopeEventListener);
         sensorManager.unregisterListener(accelerationEventListener);
+    }
+
+    // Start stop recording button
+    public void onClick(View view) {
+        if (isRecording) {
+            isRecording = false;
+            Log.d("applogs", "Recording stopped!");
+        } else {
+            isRecording = true;
+            Log.d("applogs", "Recording started!");
+        }
     }
 }
