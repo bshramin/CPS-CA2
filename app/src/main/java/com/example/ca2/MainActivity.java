@@ -96,8 +96,10 @@ public class MainActivity extends AppCompatActivity {
 
         Thread newThread = new Thread(() -> {
             while (true) {
-                truncateChart();
-                plotTheChart();
+                if (isRecording) {
+                    truncateChart();
+                    plotTheChart();
+                }
                 try {
                     TimeUnit.MILLISECONDS.sleep(100);
                 } catch (InterruptedException e) {
