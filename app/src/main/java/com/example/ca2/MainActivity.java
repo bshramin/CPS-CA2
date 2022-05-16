@@ -22,12 +22,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
     private Boolean isRecording = false;
     private ArrayList<Float> plotNumbers = new ArrayList<Float>();
 
-    private Float scale = 10F;
+    private Float scale = 0.1F;
     private Float positionX  = 0F;
 
     private SensorManager sensorManager;
@@ -59,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
                 float[] values = sensorEvent.values;
                 Log.d("applogs-gyro", Arrays.toString(values));
                 if (positionX > plotNumbers.size()) {
-                   plotNumbers.add(values[2]);
+                    plotNumbers.add(values[2]);
                 }
             }
 
@@ -92,6 +93,24 @@ public class MainActivity extends AppCompatActivity {
             public void onAccuracyChanged(Sensor sensor, int i) {
             }
         };
+
+        Thread newThread = new Thread(() -> {
+            while (true) {
+                truncateChart();
+                plotTheChart();
+                try {
+                    TimeUnit.MILLISECONDS.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException interruptedException) {
+                        interruptedException.printStackTrace();
+                    }
+                }
+            }
+        });
+        newThread.start();
     }
 
     @Override
@@ -114,30 +133,39 @@ public class MainActivity extends AppCompatActivity {
             isRecording = false;
             Log.d("applogs", "Recording stopped!");
             Toast.makeText(this, "Recording stopped!", Toast.LENGTH_SHORT).show();
-            GraphView graph = (GraphView) findViewById(R.id.graph);
-
-            Log.d("applogs", plotNumbers.toString());
-            Log.d("applogs:positionX",positionX.toString());
-
-            DataPoint[] dataPoints = new DataPoint[plotNumbers.size()];
-
-            for (int i=0;i< plotNumbers.size();i++) {
-                dataPoints[i] = new DataPoint(i, plotNumbers.get(i));
-            }
-
-            Log.d("applogs", String.valueOf(dataPoints.length));
-
-            LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(dataPoints);
-            series.setDrawDataPoints(true);
-            graph.getViewport().setXAxisBoundsManual(false);
-            graph.addSeries(series);
+            plotTheChart();
         } else {
             isRecording = true;
+            plotNumbers.clear();
+            positionX = 0.0F;
+            truncateChart();
             Log.d("applogs", "Recording started!");
             Toast.makeText(this, "Recording started!", Toast.LENGTH_SHORT).show();
         }
-        Log.d("applogs", "Truncating!");
-        plotNumbers.clear();
-        positionX = 0.0F;
+    }
+
+    private void truncateChart() {
+        GraphView graph = (GraphView) findViewById(R.id.graph);
+        graph.removeAllSeries();
+    }
+
+    private void plotTheChart() {
+        GraphView graph = (GraphView) findViewById(R.id.graph);
+
+        Log.d("applogs", plotNumbers.toString());
+        Log.d("applogs:positionX",positionX.toString());
+
+        DataPoint[] dataPoints = new DataPoint[plotNumbers.size()];
+
+        for (int i=0;i< plotNumbers.size();i++) {
+            dataPoints[i] = new DataPoint(i, plotNumbers.get(i));
+        }
+
+        Log.d("applogs", String.valueOf(dataPoints.length));
+
+        LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(dataPoints);
+        series.setDrawDataPoints(true);
+        graph.getViewport().setXAxisBoundsManual(false);
+        graph.addSeries(series);
     }
 }
